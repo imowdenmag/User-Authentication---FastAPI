@@ -4,8 +4,8 @@ from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from .. import models, auth
-from ..database import SessionLocal
+from app import models, auth
+from app.database import SessionLocal
 
 router = APIRouter(
     prefix="/protected",
