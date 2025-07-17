@@ -13,7 +13,8 @@ async def test_protected_route_no_token(async_client):
 
 @pytest.mark.asyncio
 async def test_protected_route_invalid_token(async_client):
-    response = await async_client.get("/protected/", headers={
-        "Authorization": "Bearer invalid_token"
-    })
+    response = await async_client.get(
+        "/protected/",
+        headers={"Authorization": "Bearer invalid_token"}
+    )
     assert response.status_code == 401

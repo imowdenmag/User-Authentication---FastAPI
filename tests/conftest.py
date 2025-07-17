@@ -1,9 +1,11 @@
 # tests/conftest.py
 import pytest
 import uuid
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
 from httpx import AsyncClient, ASGITransport
 from app.main import app
-from app.database import AsyncSessionLocal
+from app.database import AsyncSessionLocal, Base, engine
 
 @pytest.fixture
 async def async_client():
@@ -14,12 +16,30 @@ async def async_client():
     ) as client:
         yield client
 
+@pytest.fixture(scope="session")
+async def db_engine():
+    engine = create_async_engine("postgresql+asyncpg://postgres:Commando1+@localhost:5432/fastAPI")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield engine
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
 @pytest.fixture
-async def db_session():
+async def db_session(db_engine):
     """Database session fixture (renamed from 'db' to match test usage)"""
-    async with AsyncSessionLocal() as session:
+    async with AsyncSessionLocal(db_engine) as session:
         async with session.begin():
             yield session
+
+@pytest.fixture(scope="module", autouse=True)
+async def setup_db():
+    """Create all tables before tests and drop them after"""
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
 
 @pytest.fixture
 async def test_user(async_client):
@@ -42,3 +62,8 @@ async def auth_headers(async_client, test_user):
     })
     token = login_res.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
+@pytest.fixture
+async def cleandup(autouse=True):
+    yield
+    await db_session.rollback()

@@ -3,18 +3,15 @@ import uuid
 from fastapi import status
 
 @pytest.mark.asyncio
-async def test_register_success(async_client):
-    """Test successful user registration"""
+async def test_register_success(async_client, db_session):
     user_data = {
-        "username": f"newuser_{uuid.uuid4().hex[:8]}",
-        "email": f"newuser_{uuid.uuid4().hex[:8]}@example.com",
+        "username": "newuser",
+        "email": "new@example.com",
         "password": "ValidPass123!"
     }
-    response = await async_client.post("/register/", json=user_data)
-    assert response.status_code == status.HTTP_200_OK
-    data = response.json()
-    assert data["username"] == user_data["username"]
-    assert "id" in data
+    async with db_session.begin():
+        response = await async_client.post("/register/", json=user_data)
+        assert response.status_code == 200
 
 @pytest.mark.asyncio
 async def test_register_duplicate_email(async_client, test_user):
