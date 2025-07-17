@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from ..import models, schemas, auth
-from .. database import SessionLocal, engine
+from app.database import AsyncSessionLocal as SessionLocal
 
 router = APIRouter(
     prefix="/register",

@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from app import models, auth
-from app.database import SessionLocal
+from app.database import AsyncSessionLocal as SessionLocal
 
 router = APIRouter(
     prefix="/protected",
